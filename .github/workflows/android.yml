@@ -1,7 +1,7 @@
 name: Build Android APK
 on: [push, workflow_dispatch]
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,3 +19,10 @@ jobs:
         with:
           name: JARVIS-Android
           path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish APK
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk JARVIS.apk
+          gh release create "build-${GITHUB_RUN_NUMBER}" JARVIS.apk --title "JARVIS build ${GITHUB_RUN_NUMBER}" --notes "Automatically compiled Android debug APK." --latest
