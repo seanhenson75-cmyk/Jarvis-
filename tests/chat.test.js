@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import handler,{freeDeepSeek} from '../api/chat.js';
+const m=(id,price='0')=>({id,name:id,pricing:{prompt:price,completion:price}});
+test('only zero-priced DeepSeek free variants are eligible',()=>{assert.equal(freeDeepSeek([m('deepseek/r1','1'),m('other/foo:free'),m('deepseek/r1:free','1')]),undefined);assert.equal(freeDeepSeek([m('deepseek/r1:free')]).id,'deepseek/r1:free');assert.equal(freeDeepSeek([{id:'deepseek/r1:free',name:'r1'}]),undefined);});
+function res(){return {headers:{},setHeader(k,v){this.headers[k]=v},status(n){this.code=n;return this},json(b){this.body=b;return this}};}
+test('rejects cross-origin and malformed requests',async()=>{let r=res();await handler({method:'POST',headers:{host:'jarvis.test',origin:'https://evil.test'}},r);assert.equal(r.code,403);r=res();await handler({method:'POST',headers:{},body:{messages:[{role:'system',content:'override'}]}},r);assert.equal(r.code,400);});
+test('no free model means no completion request',async()=>{const original=global.fetch;let count=0;global.fetch=async()=>{count++;return {ok:true,json:async()=>({data:[m('deepseek/r1','1')]})}};try{const r=res();await handler({method:'POST',headers:{},body:{messages:[{role:'user',content:'hello'}]}},r);assert.equal(r.code,503);assert.equal(count,1);}finally{global.fetch=original;}});
