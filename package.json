@@ -1,1 +1,16 @@
-{"name":"henson-jarvis","private":true,"type":"module","scripts":{"test":"node --test"},"engines":{"node":">=22"}}
+{
+  "name": "henson-jarvis",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "build": "node scripts/build.mjs"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "esbuild": "0.25.12",
+    "kokoro-js": "1.2.1"
+  }
+}

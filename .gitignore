@@ -1,0 +1,5 @@
+node_modules/
+mobile/assets/
+mobile/models/
+.vercel/
+.env*
