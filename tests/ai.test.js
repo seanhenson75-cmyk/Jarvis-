@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {getReply,pause} from '../src/ai.js';
+const response=(status,body)=>({status,ok:status===200,headers:{get:()=> 'application/json'},json:async()=>body});
+test('free provider retry succeeds once and never changes model',async()=>{let calls=0,notices=0;const answer=await getReply({messages:[]},{fetcher:async()=>++calls===1?response(429,{error:'Busy'}):response(200,{answer:'Yes, sir.'}),wait:async ms=>assert.equal(ms,15000),onRetry:()=>notices++});assert.equal(answer.answer,'Yes, sir.');assert.equal(calls,2);assert.equal(notices,1);});
+test('persistent free rate limit stops after two attempts',async()=>{let calls=0;await assert.rejects(getReply({},{fetcher:async()=>{calls++;return response(429,{error:'Free usage limit reached'});},wait:async()=>{}}),/Free usage limit/);assert.equal(calls,2);});
+test('Stop interrupts pending retry',async()=>{const controller=new AbortController();const promise=pause(15000,controller.signal);controller.abort();await assert.rejects(promise,{name:'AbortError'});});

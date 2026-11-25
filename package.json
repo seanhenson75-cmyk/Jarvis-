@@ -12,5 +12,8 @@
   "dependencies": {
     "esbuild": "0.25.12",
     "kokoro-js": "1.2.1"
+  },
+  "overrides": {
+    "sharp": "0.35.5"
   }
 }
