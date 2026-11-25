@@ -1,5 +1,5 @@
 export function freeDeepSeek(models) {
-  return models.filter(m => m.id.endsWith(':free') && /deepseek/i.test(m.id+' '+m.name) && m.pricing && Object.values(m.pricing).every(v => typeof v === 'string' && Number(v) === 0)).sort((a,b)=> (b.created||0)-(a.created||0))[0];
+  return models.filter(m => m.id.endsWith(':free') && (m.id.startsWith('deepseek/') || m.id === 'particle-ai/particle-1:free') && m.pricing && Object.values(m.pricing).every(v => typeof v === 'string' && Number(v) === 0)).sort((a,b)=> (b.created||0)-(a.created||0))[0];
 }
 export default async function handler(req,res) {
   res.setHeader('Cache-Control','no-store');
