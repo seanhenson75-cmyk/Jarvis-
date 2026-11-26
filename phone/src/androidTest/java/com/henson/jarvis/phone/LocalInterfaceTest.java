@@ -19,6 +19,14 @@ public class LocalInterfaceTest {
   await("document.getElementById('phase').textContent==='LISTENING'",120000);
   assertEquals("0",evaluate("window.__legacyMicCalls"));
   assertFalse(evaluate("document.getElementById('status').textContent").contains("Could not start audio source"));
+  // Fixture delays the final reply; real native George synthesis must play first.
+  evaluate("window.__earlyAudio=false;window.__finalReply=false;window.__originalStart=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){if(this.buffer&&this.buffer.length>2400&&!window.__finalReply)window.__earlyAudio=true;return window.__originalStart.apply(this,args)};window.__beforeStreamResult=window.jarvisNativeResult;window.jarvisNativeResult=(id,data)=>{if(data.error&&data.error.includes('ChatGPT')){window.__beforeStreamResult(id,{partial:true,delta:'Yes, sir. '});window.__finishFixture=()=>{window.__finalReply=true;window.__beforeStreamResult(id,{answer:'Yes, sir. Ready.'})};}else window.__beforeStreamResult(id,data)};document.getElementById('q').value='Streaming test';document.getElementById('send').click();true");
+  await("window.__earlyAudio===true",120000);
+  assertEquals("false",evaluate("window.__finalReply"));
+  assertEquals("true",evaluate("document.getElementById('log').textContent.includes('REPLY IN PROGRESS')"));
+  evaluate("window.__finishFixture();true");
+  await("document.getElementById('phase').textContent==='LISTENING'",120000);
+  assertEquals("true",evaluate("JSON.parse(localStorage.getItem('jarvis-history')).at(-1).content==='Yes, sir. Ready.'"));
   evaluate("document.getElementById('stop').click();true");
  }
 }
