@@ -2,7 +2,7 @@ name: Build JARVIS ChatGPT Android
 on:
   push:
     branches: [main]
-    paths: ['phone/**', 'src/**', 'mobile/**', 'scripts/**', 'package*.json', 'settings.gradle', '.github/workflows/chatgpt-android.yml']
+    paths: ['phone/**', 'src/**', 'mobile/**', 'scripts/**', 'package*.json', 'settings.gradle', 'gradle.properties', '.github/workflows/chatgpt-android.yml']
   workflow_dispatch:
 permissions:
   contents: write
