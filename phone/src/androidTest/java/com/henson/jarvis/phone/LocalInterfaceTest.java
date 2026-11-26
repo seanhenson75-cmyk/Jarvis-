@@ -10,4 +10,15 @@ public class LocalInterfaceTest {
  @Test public void connectsToOpenAILoginServerWhileForeground()throws Exception{new OpenAIClient(new TokenVault(InstrumentationRegistry.getInstrumentation().getTargetContext())).checkLoginServer();}
  @Test public void presentsLocalChatGPTAccountConnection()throws Exception{assertEquals("true",evaluate("location.hostname==='127.0.0.1'&&!!window.JarvisNative&&document.getElementById('connect-chatgpt').textContent==='Continue with ChatGPT'"));}
  @Test public void generatesBritishMaleAudioInsideAndroidWebView()throws Exception{evaluate("window.__audioCount=0;window.__startOriginal=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){if(this.buffer&&this.buffer.length>2400)window.__audioCount++;return window.__startOriginal.apply(this,args)};document.getElementById('preview').click();true");await("window.__audioCount>0",120000);}
+
+ @Test public void nativeStartAvoidsBrokenWebViewCapture()throws Exception{
+  android.app.Instrumentation i=InstrumentationRegistry.getInstrumentation();i.getUiAutomation().grantRuntimePermission(i.getTargetContext().getPackageName(),android.Manifest.permission.RECORD_AUDIO);
+  evaluate("window.__legacyMicCalls=0;if(navigator.mediaDevices)navigator.mediaDevices.getUserMedia=()=>{window.__legacyMicCalls++;return Promise.reject(new Error('WebView audio source fixture failure'))};window.__realNativeResult=window.jarvisNativeResult;window.jarvisNativeResult=(id,data)=>{if(Object.hasOwn(data,'connected')){data.connected=true;data.email='fixture@example.invalid'}window.__realNativeResult(id,data)};window.dispatchEvent(new Event('jarvis-account-changed'));true");
+  await("document.getElementById('connect-chatgpt').textContent==='ChatGPT account'",10000);
+  evaluate("window.SpeechRecognition=class{start(){this.onstart?.()}abort(){this.onend?.()}};document.getElementById('start').click();true");
+  await("document.getElementById('phase').textContent==='LISTENING'",120000);
+  assertEquals("0",evaluate("window.__legacyMicCalls"));
+  assertFalse(evaluate("document.getElementById('status').textContent").contains("Could not start audio source"));
+  evaluate("document.getElementById('stop').click();true");
+ }
 }
