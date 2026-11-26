@@ -1,0 +1,65 @@
+name: Build JARVIS ChatGPT Android
+on:
+  push:
+    branches: [main]
+    paths: ['phone/**', 'src/**', 'mobile/**', 'scripts/**', 'package*.json', 'settings.gradle', '.github/workflows/chatgpt-android.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: jarvis-chatgpt-phone
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build and test local voice interface
+        run: |
+          npm ci --onnxruntime-node-install-cuda=skip
+          npm test
+          npm run build
+          mkdir -p phone/src/main/assets/site
+          cp -R mobile/. phone/src/main/assets/site/
+      - name: Compile Android application and security tests
+        run: gradle :phone:assembleDebug :phone:assembleDebugAndroidTest :phone:lintDebug
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Test OAuth validation and encrypted storage on Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_7
+          disable-animations: true
+          script: gradle :phone:connectedDebugAndroidTest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: JARVIS-ChatGPT-build-and-tests
+          path: |
+            phone/build/outputs/apk/debug/*.apk
+            phone/build/reports/
+      - name: Publish tested installable Android build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp phone/build/outputs/apk/debug/phone-debug.apk JARVIS-ChatGPT.apk
+          sha256sum JARVIS-ChatGPT.apk > JARVIS-ChatGPT.apk.sha256
+          gh release create "chatgpt-android-${GITHUB_RUN_NUMBER}" JARVIS-ChatGPT.apk JARVIS-ChatGPT.apk.sha256 --title "JARVIS ChatGPT Android" --notes "Local ChatGPT plan sign-in, encrypted phone-only credentials, British male neural voice. Android build, lint, and OAuth security tests passed. Account authorization and Samsung microphone testing still require the owner’s device." --latest

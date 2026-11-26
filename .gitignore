@@ -3,3 +3,8 @@ mobile/assets/
 mobile/models/
 .vercel/
 .env*
+
+**/build/
+.gradle/
+phone/src/main/assets/site/
+local.properties
