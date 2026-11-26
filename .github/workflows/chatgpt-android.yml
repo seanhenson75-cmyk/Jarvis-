@@ -55,9 +55,8 @@ jobs:
         if: always()
         with:
           name: JARVIS-ChatGPT-build-and-tests
-          path: |
-            phone/build/outputs/apk/debug/*.apk
-            phone/build/reports/
+          retention-days: 3
+          path: phone/build/reports/
       - name: Publish tested installable Android build
         env:
           GH_TOKEN: ${{ github.token }}
