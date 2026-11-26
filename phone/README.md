@@ -4,7 +4,7 @@ This separate Android package runs JARVIS locally on the phone and uses the offi
 
 ## Install and connect
 
-Install the `JARVIS-ChatGPT.apk` release asset, open **JARVIS ChatGPT**, and choose **Continue with ChatGPT**. The system browser handles account selection, workspace selection, and permission to use the existing ChatGPT plan. Return through the **Return to JARVIS** link after sign-in. Tap **Start JARVIS** and grant the Android microphone permission once.
+Install the `JARVIS-ChatGPT.apk` release asset, open **JARVIS ChatGPT**, and choose **Continue with ChatGPT**. The system browser handles account selection, workspace selection, and permission to use the existing ChatGPT plan. Its local callback stages the code without contacting OpenAI while JARVIS is backgrounded. Return through the **Return to JARVIS** link after sign-in; the foreground app then exchanges and verifies the code. DNS failures retain the staged attempt, and Retry connection resumes it without silently replaying an already exchanged code. Tap **Start JARVIS** and grant the Android microphone permission once.
 
 Keep extra-credit usage and automatic credit purchases disabled in ChatGPT if no additional charges are allowed. This app does not add an API-key fallback or buy credits. Included plan limits still apply.
 
